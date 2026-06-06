@@ -1,990 +1,343 @@
 <p align="center">
-
-&#x20; <img src="assets/banner.png">
-
+  <img src="assets/banner.png">
 </p>
 
-
-
-
-
-<h1 align="center">
-
-Automated Data Quality Framework
-
-</h1>
-
-
-
-
+<h1 align="center">Automated Data Guard</h1>
 
 <p align="center">
-
-End-to-End Azure Batch Data Quality Pipeline with PySpark Validation, Delta Lake, Audit Logging \& Automated Monitoring
-
+End-to-End Azure Batch Data Quality Pipeline with PySpark Validation, Delta Lake, Audit Logging & Automated Monitoring
 </p>
 
-
-
-
-
 <p align="center">
-
-
-
-!\[Python](https://img.shields.io/badge/Python-3.10-blue)
-
-!\[PySpark](https://img.shields.io/badge/PySpark-3.x-orange)
-
-!\[Azure](https://img.shields.io/badge/Azure-Cloud-blue)
-
-!\[Databricks](https://img.shields.io/badge/Azure-Databricks-red)
-
-!\[Delta Lake](https://img.shields.io/badge/Delta-Lake-green)
-
-
-
+<img src="https://img.shields.io/badge/Python-3.10-blue">
+<img src="https://img.shields.io/badge/PySpark-3.x-orange">
+<img src="https://img.shields.io/badge/Azure-Cloud-blue">
+<img src="https://img.shields.io/badge/Databricks-red">
+<img src="https://img.shields.io/badge/Delta-Lake-green">
 </p>
 
+---
 
+## Overview
 
+Automated Data Guard is a production-style Azure Data Engineering project that implements an end-to-end batch data quality validation and monitoring pipeline.
 
+The pipeline processes **7.7M+ US Accident records (2.85 GB)** from Kaggle using a modern **Bronze → Silver → Gold Lakehouse Architecture**.
 
-\---
+The system automates:
 
+- Batch data ingestion
+- Data quality validation
+- Invalid data quarantine
+- Audit logging
+- Gold analytics generation
+- Failure monitoring and alerting
 
+---
 
-\# Overview
-
-
-
-
-
-Automated Data Quality Framework is a production-style Azure Data Engineering project focused on building a scalable batch data validation and monitoring pipeline.
-
-
-
-
-
-The pipeline processes \*\*7.7M+ US Accident records (2.85 GB)\*\* from Kaggle using a modern \*\*Bronze → Silver → Gold Lakehouse Architecture\*\*.
-
-
-
-
-
-It automates:
-
-
-
-\- Data ingestion
-
-\- Quality validation
-
-\- Bad data isolation
-
-\- Audit tracking
-
-\- Gold analytics generation
-
-\- Pipeline monitoring
-
-
-
-
-
-\---
-
-
-
-\# Architecture
-
-
-
-
+## Architecture
 
 <p align="center">
-
 <img src="assets/architecture.png">
-
 </p>
 
+### Pipeline Flow
 
-
-
-
-Pipeline Flow:
-
-
-
-
-
+```
 Kaggle API
-
-
-
-&#x20;       ↓
-
-
-
+     |
+     v
 Azure Data Factory
-
-
-
-&#x20;       ↓
-
-
-
+     |
+     v
 Azure Databricks
-
-
-
-&#x20;       ↓
-
-
-
+     |
+     v
 Bronze Layer
+     |
+     v
+PySpark Data Quality Engine
+     |
+     |
+ PASS          FAIL
+  |              |
+  v              v
+Silver       Quarantine
+  |
+  v
+Gold Analytics
+```
 
-(Raw Data)
+---
 
-
-
-&#x20;       ↓
-
-
-
-PySpark Data Quality Framework
-
-
-
-&#x20;       ↓
-
-
-
-
-
-PASS ---------------- FAIL
-
-
-
-
-
-&#x20;↓                    ↓
-
-
-
-
-
-Silver Layer       Quarantine Layer
-
-
-
-
-
-&#x20;↓
-
-
-
-
-
-Gold Analytics Layer
-
-
-
-
-
-\---
-
-
-
-
-
-\# Tech Stack
-
-
-
-
+## Tech Stack
 
 | Component | Technology |
-
 |---|---|
-
 | Orchestration | Azure Data Factory |
-
-| Processing Engine | Azure Databricks |
-
-| Programming | PySpark |
-
+| Processing | Azure Databricks |
+| Language | PySpark |
 | Storage | ADLS Gen2 |
-
 | Architecture | Bronze-Silver-Gold Lakehouse |
-
-| File Format | Delta Lake |
-
+| Format | Delta Lake |
 | Database | Azure SQL Database |
-
 | Security | Azure Key Vault |
+| Alerting | Azure Logic Apps |
+| Dataset | Kaggle US Accidents |
 
-| Alerts | Azure Logic Apps |
+---
 
-| Dataset Source | Kaggle API |
-
-
-
-
-
-\---
-
-
-
-\# Pipeline Results
-
-
-
-
+## Pipeline Results
 
 | Metric | Value |
-
 |---|---|
-
 | Dataset Size | 2.85 GB |
-
 | Total Records Processed | 7,728,394 |
-
-| Clean Records (Silver) | 7,693,711 |
-
-| Rejected Records (Quarantine) | 34,683 |
-
-| Data Quality Pass Rate | 99.55% |
-
+| Silver Records | 7,693,711 |
+| Quarantine Records | 34,683 |
+| Pass Rate | 99.55% |
 | Data Quality Rules | 19 |
+| Gold Tables | 5 |
+| Runtime | ~25 minutes |
 
-| Gold Tables Created | 5 |
+---
 
-| Pipeline Runtime | \~25 minutes |
+# Pipeline Implementation
 
-
-
-
-
-\---
-
-
-
-\# Pipeline Implementation
-
-
-
-
-
-\## 1. Bronze Ingestion Layer
-
-
-
-
+## 1. Bronze Ingestion Layer
 
 Notebook:
 
-
-
-`01\_bronze\_ingestion.ipynb`
-
-
-
-
+`01_bronze_ingestion.ipynb`
 
 Responsibilities:
 
+- Connects to Kaggle API
+- Downloads accident dataset
+- Retrieves secrets securely from Azure Key Vault
+- Stores raw data in ADLS Bronze layer
 
+---
 
-\- Connects with Kaggle API
-
-\- Downloads US Accidents dataset
-
-\- Retrieves credentials securely from Key Vault
-
-\- Stores raw data into ADLS Bronze layer
-
-
-
-
-
-Flow:
-
-
-
-
-
-Kaggle
-
-
-
-&#x20;  ↓
-
-
-
-Databricks
-
-
-
-&#x20;  ↓
-
-
-
-Bronze Delta Storage
-
-
-
-
-
-\---
-
-
-
-\# 2. Data Quality Validation Layer
-
-
-
-
+## 2. Data Quality Validation Layer
 
 Notebook:
 
+`02_data_quality_validation.ipynb`
 
+The validation engine applies **19 PySpark data quality rules**.
 
-`02\_data\_quality\_validation.ipynb`
-
-
-
-
-
-This is the core validation engine.
-
-
-
-
-
-Processing Steps:
-
-
-
-
-
-Bronze Data
-
-
-
-&#x20;     ↓
-
-
-
-Schema Standardization
-
-
-
-&#x20;     ↓
-
-
-
-Data Quality Rules
-
-
-
-&#x20;     ↓
-
-
-
-Quality Status Generation
-
-
-
-&#x20;     ↓
-
-
-
-Silver / Quarantine Split
-
-
-
-
-
-
-
-Implemented \*\*19 custom PySpark validation rules\*\*:
-
-
-
-
+Validation categories:
 
 | Category | Checks |
-
 |---|---|
-
 | Identity | ID validation, Duplicate detection |
-
-| Event | Severity range, Start time validation |
-
+| Event | Severity range, Start time checks |
 | Location | Latitude, Longitude, State, Country validation |
-
 | Weather | Temperature, Humidity, Pressure, Visibility |
+| Temporal | Timestamp consistency |
 
-| Temporal | Timestamp consistency checks |
+Processing:
 
+```
+Bronze Data
+     |
+Schema Standardization
+     |
+DQ Rule Engine
+     |
+Silver / Quarantine Split
+```
 
+Results:
 
+- 7,693,711 records → Silver
+- 34,683 records → Quarantine
 
+---
 
-Output:
-
-
-
-
-
-Clean Records:
-
-
-
-7,693,711 → Silver
-
-
-
-
-
-Rejected Records:
-
-
-
-34,683 → Quarantine
-
-
-
-
-
-\---
-
-
-
-\# 3. Gold Aggregation Layer
-
-
-
-
+## 3. Gold Analytics Layer
 
 Notebook:
 
+`03_gold_aggregations.ipynb`
 
+Creates business-ready aggregation tables.
 
-`03\_gold\_aggregations.ipynb`
-
-
-
-
-
-Transforms validated Silver data into analytics-ready datasets.
-
-
-
-
-
-Gold Tables:
-
-
-
-
-
-| Table | Purpose |
-
+| Gold Table | Purpose |
 |---|---|
-
-| Accidents by State | Geographic distribution |
-
-| Accidents by Severity | Severity analysis |
-
-| Accidents by Hour | Peak accident timing |
-
+| Accidents by State | Location analysis |
+| Accidents by Severity | Severity distribution |
+| Accidents by Hour | Time analysis |
 | Accidents by Weather | Weather impact |
+| Daily Trend | Historical trends |
 
-| Daily Accident Trend | Historical analysis |
+---
 
+# Performance Optimizations
 
+## Single-Pass Schema Standardization
 
+Optimized:
 
+- Column normalization
+- Data type casting
+- Schema consistency
 
-\---
+---
 
+## Optimized Duplicate Detection
 
+Implemented Spark distributed duplicate detection using:
 
-\# Performance Optimizations
-
-
-
-
-
-\## Single-Pass Schema Standardization
-
-
-
-Reduced unnecessary transformations by applying schema cleaning efficiently.
-
-
-
-
-
-Includes:
-
-
-
-\- Column normalization
-
-\- Data type casting
-
-\- Consistent schema creation
-
-
-
-
-
-\---
-
-
-
-
-
-\## Optimized Duplicate Detection
-
-
-
-
-
-Used Spark distributed approach:
-
-
-
-
-
+```
 groupBy() + join()
+```
 
+for scalable processing on millions of records.
 
+---
 
-
-
-instead of row-level comparison.
-
-
-
-
-
-Designed for large-scale datasets.
-
-
-
-
-
-\---
-
-
-
-
-
-\## Null-Safe Validation Logic
-
-
-
-
+## Null-Safe Validation
 
 Implemented:
 
+```
+F.coalesce(rule_expression, F.lit(False))
+```
 
+Validation behavior:
 
+```
+TRUE  -> PASS
 
+FALSE / NULL -> FAIL
+```
 
-F.coalesce(rule\_expression, F.lit(False))
+This prevents unclear validation states.
 
+Achieved approximately:
 
+**9.4K records/sec validation throughput**
 
+---
 
+# Security
 
-Logic:
+Implemented secure credential management using:
 
-
-
-
-
-TRUE
-
-
-
-&#x20;↓
-
-
-
-PASS
-
-
-
-
-
-FALSE / NULL
-
-
-
-&#x20;↓
-
-
-
-FAIL
-
-
-
-
-
-This avoids uncertain validation states.
-
-
-
-
-
-Performance:
-
-
-
-
-
-\~9.4K records/sec processing throughput
-
-
-
-
-
-\---
-
-
-
-\# Security Implementation
-
-
-
-
-
-Implemented enterprise-style secret management using:
-
-
-
-
-
-\- Azure Key Vault
-
-\- Databricks Secret Scope
-
-
-
-
+- Azure Key Vault
+- Databricks Secret Scope
 
 Protected:
 
+- Kaggle API Token
+- Storage Account Key
+- Azure SQL Credentials
 
+No hardcoded credentials are stored inside notebooks.
 
+---
 
+# Azure SQL Audit Logging
 
-\- Kaggle API Token
+Every execution stores pipeline metadata:
 
-\- Storage Account Key
-
-\- Azure SQL Credentials
-
-
-
-
-
-No credentials are hardcoded inside notebooks.
-
-
-
-
-
-\---
-
-
-
-\# Azure SQL Audit Logging
-
-
-
-
-
-Every pipeline execution writes operational metadata.
-
-
-
-
-
-Captured:
-
-
-
-
-
-\- Execution timestamp
-
-\- Total processed records
-
-\- Passed records
-
-\- Failed records
-
-\- Failure percentage
-
-\- Pipeline status
-
-
-
-
+- Run timestamp
+- Total records
+- Passed records
+- Failed records
+- Failure percentage
+- Pipeline status
 
 Flow:
 
-
-
-
-
+```
 Databricks
-
-
-
-&#x20;    ↓
-
-
-
-JDBC Connection
-
-
-
-&#x20;    ↓
-
-
-
+     |
+     v
+JDBC
+     |
+     v
 Azure SQL Audit Table
+```
 
+---
 
+# Automated Alerting
 
-
-
-\---
-
-
-
-\# Automated Alerting
-
-
-
-
-
-Azure Logic Apps monitors data quality results.
-
-
-
-
+Azure Logic Apps monitors data quality failures.
 
 Flow:
 
+```
+DQ Metrics
+     |
+Threshold Check
+     |
+Alert Trigger
+     |
+Email Notification
+```
 
+---
 
+# Screenshots
 
+## Azure Data Factory Pipeline
 
-DQ Metrics Generated
+<img src="assets/adf_pipeline.png">
 
+---
 
+## Successful Pipeline Execution
 
-&#x20;       ↓
+<img src="assets/adf_pipeline_success.png">
 
+---
 
+## Azure SQL Audit Logging
 
-Failure Threshold Check
+<img src="assets/azure_sql_audit.png">
 
+---
 
+# Repository Structure
 
-&#x20;       ↓
-
-
-
-Threshold Exceeded
-
-
-
-&#x20;       ↓
-
-
-
-Email Alert Triggered
-
-
-
-
-
-\---
-
-
-
-\# Screenshots
-
-
-
-
-
-\## Azure Data Factory Pipeline
-
-
-
-
-
-<img src="assets/adf\_pipeline.png">
-
-
-
-
-
-\---
-
-
-
-
-
-\## Successful Pipeline Execution
-
-
-
-
-
-<img src="assets/adf\_pipeline\_success.png">
-
-
-
-
-
-\---
-
-
-
-
-
-\## Azure SQL Audit Logging
-
-
-
-
-
-<img src="assets/azure\_sql\_audit.png">
-
-
-
-
-
-\---
-
-
-
-\# Repository Structure
-
-
-
-
-
-Automated-Data-Quality-Framework
-
-
-
-
+```
+automated-data-guard
 
 ├── assets
-
-
-
 │   ├── banner.png
-
-
-
 │   ├── architecture.png
-
-
-
-│   ├── adf\_pipeline.png
-
-
-
-│   ├── adf\_pipeline\_success.png
-
-
-
-│   └── azure\_sql\_audit.png
-
-
-
-
+│   ├── adf_pipeline.png
+│   ├── adf_pipeline_success.png
+│   └── azure_sql_audit.png
 
 ├── notebooks
-
-
-
-│   ├── 01\_bronze\_ingestion.ipynb
-
-
-
-│   ├── 02\_data\_quality\_validation.ipynb
-
-
-
-│   └── 03\_gold\_aggregations.ipynb
-
-
-
-
+│   ├── 01_bronze_ingestion.ipynb
+│   ├── 02_data_quality_validation.ipynb
+│   └── 03_gold_aggregations.ipynb
 
 └── README.md
+```
 
+---
 
+# Skills Demonstrated
 
+- Azure Data Engineering
+- ETL Pipeline Development
+- PySpark Processing
+- Data Quality Engineering
+- Delta Lake Architecture
+- Cloud Security
+- Pipeline Monitoring
 
+---
 
-\---
+# Author
 
-
-
-\# Skills Demonstrated
-
-
-
-
-
-\- Azure Data Engineering
-
-\- ETL Pipeline Development
-
-\- Data Quality Engineering
-
-\- Lakehouse Architecture
-
-\- PySpark Distributed Processing
-
-\- Delta Lake
-
-\- Secure Cloud Development
-
-\- Pipeline Monitoring
-
-
-
-
-
-\---
-
-
-
-\# Author
-
-
-
-
-
-\*\*Mounika\*\*
-
-
+**Mounika**
 
 Aspiring Azure Data Engineer
-
